@@ -1,0 +1,19 @@
+#!/bin/bash
+
+
+if [[ "$1" == "c" ]] || [[ "$1" == "copy" ]]; then
+  if [[ "$2" == "" ]]; then
+    a="$(cat - )"
+    printf "%s" "$a" | sed -e "s/\r//g" | nohup xclip -loops 0 -sel c >/dev/null 2>&1 
+    # setsid -f bash -c "printf '$a' | xclip -sel c" >/dev/null 2>&1
+  else
+    shift; 
+    printf "%s" "$@" | sed -e "s/\r//g" | nohup xclip -loops 0 -sel c >/dev/null 2>&1 
+  fi
+fi
+
+if [[ "$1" == "p" ]] || [[ "$1" == "paste" ]]; then
+  xclip -o -sel clipboard
+fi
+
+

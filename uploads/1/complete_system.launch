@@ -1,0 +1,30 @@
+<launch>
+    <!-- Load parameter -->
+    <rosparam command="load" file="$(find gps_camera_monitoring)/config/params.yaml" />
+    
+    <!-- GPS Node -->
+    <node name="gps_node" pkg="gps_camera_monitoring" type="gps_node.py" output="screen">
+        <param name="port" value="/dev/ttyTHS1"/>
+        <param name="baudrate" value="9600"/>
+    </node>
+
+    <!-- Camera Node -->
+    <node name="camera0_node" pkg="gps_camera_monitoring" type="camera_node.py" output="screen" respawn="true">
+        <param name="camera_id" value="0"/>
+    </node>
+    <node name="camera1_node" pkg="gps_camera_monitoring" type="camera_node.py" output="screen" respawn="true">
+        <param name="camera_id" value="1"/>
+    </node>
+    <node name="camera2_node" pkg="gps_camera_monitoring" type="camera_node.py" output="screen" respawn="true">
+        <param name="camera_id" value="2"/>
+    </node>
+
+    <!-- Recorder Node -->
+    <node name="recorder_node" pkg="gps_camera_monitoring" type="recorder_node.py" output="screen">
+        <param name="save_path" value="$(env HOME)/recorded_data"/>
+    </node>
+
+    <!-- RQT GUI -->
+    <node name="rqt_gui" pkg="rqt_gui" type="rqt_gui" output="screen" 
+          />
+</launch>

@@ -1,0 +1,30 @@
+
+gps:
+  port: /dev/ttyTHS1
+  baudrate: 9600
+  update_rate: 1.0  # Hz
+  frame_id: "gps"
+  # Tambahan parameter untuk status
+  min_satellites: 4  # Minimum satellites untuk valid fix
+  min_signal: 25    # Minimum signal strength
+
+cameras:
+  frame_rate: 30
+  resolution:
+    width: 640
+    height: 480
+  buffer_size: 1
+  retry_interval: 1.0  # seconds
+  # Tambahkan parameter untuk video lokal
+  local_video:
+    enabled: false  # Set true untuk menggunakan video lokal
+    path: ""        # Path ke video lokal Anda
+    loop: true     # Set true untuk memutar ulang video
+  # Konfigurasi specific untuk Jetson
+  gstreamer:
+    enable: true
+    pipeline_template: "v4l2src device=/dev/video{} ! video/x-raw, width={}, height={} ! videoconvert ! video/x-raw, format=BGR ! appsink"
+
+recorder:
+  save_path: ~/recorded_data
+  record_interval: 1.0  # seconds

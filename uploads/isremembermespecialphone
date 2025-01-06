@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+  mkdir -p "./dirr"
+
+  find . -maxdepth 1 -name "*mp4" -type f -exec bash -c '
+  {
+    bname=$0
+    nname=$(stat -c '%y' "${bname}" | sed "s/\..*//g;s/ /_/g;s/[:+.]/-/g") 
+    filesi="$(numfmt --to=iec --suffix=B --format="%.1f" "$(stat -c "%s" "$bname")")"
+    newname="${bname}___${nname}___${filesi}" 
+    echo "${0}" >> "isrememberstat$(date "+%Y-%m-%d--%H-00").txt"
+    echo "${newname}" >> "isrememberstat$(date "+%Y-%m-%d--%H-00").txt"
+    f="$(realpath "$0")"
+    last_modified="$(date -r "$f" +"%Y-%m-%d---%H-%M")"
+    new_name="${last_modified}_$(basename "$f")"
+    if [[ $newname != "" ]]; then
+      mv -iv "$f" "$new_name"
+    fi
+    echo "$f --> $new_name"
+  }||{
+  echo "fail"
+  }
+  ' {} ';'
+
+  find . -maxdepth 1 -name "*mp4" -type f -exec bash -c '
+  {
+    f="$(realpath "$0")"
+    mv -iv "$f" "./dirr"
+  }||{
+  echo "fail"
+  }
+  ' {} ';'
+

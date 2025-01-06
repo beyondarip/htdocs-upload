@@ -1,0 +1,144 @@
+#!/usr/bin/bash
+
+# echo "$@" >> /tmp/cobaa
+# PATH="$HOME/.local/bin/scripts/alias:$HOME/.local/bin/scripts/app:$HOME/.local/bin/app:$HOME/.local/bin/scripts:$HOME/.local/bin:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin"
+# export XDG_RUNTIME_DIR="/run/user/1000"
+# DISPLAY=:0 
+# USER="metfoil"
+# HOME="/home/metfoil"
+
+utilNotExist ()
+{
+  app="$1"
+  shift;
+  # echo "$app" "$@"
+  # notify-send "1" "$app"
+  if hash "$app" 2>/dev/null ; then
+    setsid -f $app "$@" >/dev/null 2>&1 
+  else
+    setsid -f xdg-open "$@" >/dev/null 2>&1 
+  fi
+}
+utilNotExistDev ()
+{
+  app="$1"
+  shift;
+  # echo "$app" "$@"
+  if hash "$app" 2>/dev/null ; then
+    devour $app "$@" 
+  else
+    devour xdg-open "$@" 
+  fi
+}
+
+[[ "$1" == "" ]] && notify-send "launch" "empty args"
+
+# Launches files based on their mimetypes
+# Usage: launch [FILE...]
+# Dependencies: file
+if [[ "$1" == "@" ]] || [[ "$1" == "open" ]]; then
+  shift;
+  if [[ -d "$@" ]]; then
+    utilNotExistDev "$FILEMANAGER" "$@"
+    exit
+  fi
+  # case $(xdg-mime query filetype "$@") in # kinda bloat ? not effective ? slow ?
+  case $(file --mime-type -b "$@") in
+     # Check for the mimetype of your file (This is POSIX regex)
+     video/* | audio/* | image/gif)
+        # devour $VIDEOVIEWER "$@" 
+        utilNotExistDev "$VIDEOVIEWER" "$@"
+        ;;
+     image/*)
+        utilNotExistDev "$IMAGEVIEWER" "$@"
+        ;;
+     text/html)
+        utilNotExistDev "$BROWSER" "$@"
+        ;;
+     application/json | inode/x-empty | text/plain | application/x-shellscript)
+        utilNotExistDev "$EDITOR" "$@"
+        ;;
+     application/*json)
+        utilNotExistDev "$EDITOR" "$@"
+        ;;
+      text/vnd.qt.linguist)
+        # devour $VIDEOVIEWER "$@" 
+        utilNotExistDev "$VIDEOVIEWER" "$@"
+        ;;
+     text/*)
+        utilNotExistDev "$EDITOR" "$@"
+        ;;
+      # -- lua
+     application/csv ) 
+        utilNotExistDev "$EDITOR" "$@"
+        ;;
+     # So on and so forth...
+     application/pdf | application/postscript)
+        utilNotExistDev "$PDFVIEWER" "$@"
+        ;;
+     # *) exit 1 ;;
+     *) devour xdg-open "$@" ;;
+  esac
+else
+  # notify-send "1" "else"
+  # echo $@ $(xdg-mime query filetype "$@")
+  data="$@"
+  [[ "$1" == "clipboard" ]] && data=$(func-clipboard p)
+
+  if [[ -d "$data" ]]; then
+    # setsid -f $FILEMANAGER "$data" >/dev/null 2>&1
+    utilNotExist "$FILEMANAGER" "$data"
+    exit
+  fi
+  if [[ "$1" == "nvim" && "$2" != "" ]]; then
+    shift;
+    # setsid -f st -e $EDITOR "$data"  >/dev/null 2>&1
+    # ox st -g 89x25+350+200 -n "ezel-wm-float"  -e zsh -c "\"/home/metfoil/.local/bin/scripts/alias/api-set-wallpaper fzf\""
+    
+    ox st -g 89x25+350+200 -n ""  -e zsh -c "\"nvim '$@'\""
+
+    exit
+  fi
+  # case $(xdg-mime query filetype "$data") in # kinda bloat ? not effective ? slow ?
+  case $(file --mime-type -b "$data") in
+     # Check for the mimetype of your file (This is POSIX regex)
+     video/* | audio/* | image/gif | application/octet-stream)
+        # Launch using your favorite application
+        # setsid -f $VIDEOVIEWER "$data" >/dev/null 2>&1
+       utilNotExist "$VIDEOVIEWER" "$data"
+        ;;
+     image/*)
+       utilNotExist "$IMAGEVIEWER" "$data"
+
+        ;;
+      text/vnd.qt.linguist)
+        # setsid -f $VIDEOVIEWER "$data" >/dev/null 2>&1
+       utilNotExist "$VIDEOVIEWER" "$data"
+        ;;
+     text/html)
+        # setsid -f $BROWSER "$data" >/dev/null 2>&1
+       utilNotExist "$BROWSER" "$data"
+        ;;
+     application/json | inode/x-empty | text/plain | application/x-shellscript)
+        # setsid -f st -e $EDITOR "$data"  >/dev/null 2>&1
+        utilNotExist "st -e $EDITOR " "$data"
+        ;;
+     text/*)
+        setsid -f st -e $EDITOR "$data"  >/dev/null 2>&1
+        ;;
+     application/pdf | application/postscript)
+        # setsid -f zathura "$data" >/dev/null 2>&1
+       utilNotExist "$PDFVIEWER" "$data"
+        ;;
+     # application/*json)
+     #    setsid -f st -e $EDITOR "$data"  >/dev/null 2>&1
+     #    ;;
+      # -- lua
+     # application/csv ) 
+     #    setsid -f st -e $EDITOR "$data"  >/dev/null 2>&1
+     #    ;;
+     # So on and so forth...
+     # *) exit 1 ;;
+     *) xdg-open "$data" ;;
+  esac
+fi
